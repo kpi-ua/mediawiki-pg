@@ -1,7 +1,7 @@
 # MediaWiki Docker image with PostgreSQL support
 # Based on official MediaWiki image with added PostgreSQL PHP extensions
 
-FROM mediawiki:1.43
+FROM mediawiki:1.44.2
 
 # Install PostgreSQL PHP extensions
 RUN apt-get update && apt-get install -y \
