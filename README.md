@@ -21,10 +21,10 @@ This repository provides a Docker setup for running [MediaWiki](https://www.medi
    cd mediawiki-pg
    ```
 
-2. Create environment file:
+2. Create environment file with a secure password:
    ```bash
    cp .env.example .env
-   # Edit .env with your preferred database credentials
+   # Edit .env and set a strong password for MEDIAWIKI_DB_PASSWORD
    ```
 
 3. Start the containers (first run without LocalSettings.php):
@@ -63,7 +63,7 @@ docker build -t mediawiki-pg .
 |----------|---------|-------------|
 | `MEDIAWIKI_DB_NAME` | `mediawiki` | PostgreSQL database name |
 | `MEDIAWIKI_DB_USER` | `mediawiki` | PostgreSQL user |
-| `MEDIAWIKI_DB_PASSWORD` | `mediawiki_password` | PostgreSQL password |
+| `MEDIAWIKI_DB_PASSWORD` | *(required)* | PostgreSQL password - must be set in `.env` file |
 
 ### Volumes
 
