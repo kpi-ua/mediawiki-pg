@@ -1,0 +1,36 @@
+services:
+  mediawiki:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - mediawiki_images:/var/www/html/images
+      - ./LocalSettings.php:/var/www/html/LocalSettings.php:ro
+    environment:
+      - MEDIAWIKI_DB_HOST=db
+      - MEDIAWIKI_DB_NAME=${MEDIAWIKI_DB_NAME:-mediawiki}
+      - MEDIAWIKI_DB_USER=${MEDIAWIKI_DB_USER:-mediawiki}
+      - MEDIAWIKI_DB_PASSWORD=${MEDIAWIKI_DB_PASSWORD:-mediawiki_password}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=${MEDIAWIKI_DB_NAME:-mediawiki}
+      - POSTGRES_USER=${MEDIAWIKI_DB_USER:-mediawiki}
+      - POSTGRES_PASSWORD=${MEDIAWIKI_DB_PASSWORD:-mediawiki_password}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MEDIAWIKI_DB_USER:-mediawiki} -d ${MEDIAWIKI_DB_NAME:-mediawiki}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  mediawiki_images:
+  db_data:
