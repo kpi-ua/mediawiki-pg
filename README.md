@@ -51,6 +51,6 @@ Access MediaWiki at http://localhost:8080
 
 ## License
 
-Starting from commit `00a42a141882` (`2026-08-22`), this project is licensed under the Mozilla Public License 2.0 (see [LICENSE](LICENSE)). Code contributed before that point remains available under the MIT license (see [LICENSE-MIT](LICENSE-MIT)). The last commit under the previous license is tagged `mit-final`.
+Starting from commit `00a42a141882` (`2026-08-22`), this project is licensed under the Mozilla Public License 2.0 (see [LICENSE](LICENSE)). Code contributed before that point remains available under the [MIT License](https://opensource.org/license/mit); the last commit distributed under those terms is tagged `mit-final`.
 
 This license covers the files in this repository (Dockerfile, documentation). MediaWiki itself is distributed under its own license (GPL-2.0-or-later) and is not part of this repository.
