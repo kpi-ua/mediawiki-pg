@@ -8,7 +8,7 @@
   "containerDefinitions": [
     {
       "name": "mediawiki",
-      "image": "kpiua/mediawiki-pg:1.44.2-pg",
+      "image": "kpiua/mediawiki-pg:1.45.4-pg",
       "essential": true,
       "portMappings": [
         { "containerPort": 80, "protocol": "tcp" }

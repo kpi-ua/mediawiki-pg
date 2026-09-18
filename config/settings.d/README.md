@@ -6,7 +6,7 @@ environment-driven defaults. They are included in filename order at the end of
 `LocalSettings.php`, so they can override anything set there.
 
 ```dockerfile
-FROM kpiua/mediawiki-pg:1.44.2-pg
+FROM kpiua/mediawiki-pg:1.45.4-pg
 COPY 10-permissions.php /etc/mediawiki/settings.d/
 ```
 
