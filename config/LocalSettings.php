@@ -30,15 +30,29 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 /**
  * Read a setting from the environment.
  *
+ * For every accepted name, the variable itself wins over a <NAME>_FILE
+ * variable pointing at a file holding the value, which is how Docker and
+ * Kubernetes secrets are usually mounted. $aliases lets a setting keep an
+ * older or upstream variable name.
+ *
  * Passing no default makes the variable mandatory: a missing value raises an
- * error instead of silently starting a half-configured wiki. $aliases lets a
- * setting keep an older variable name.
+ * error instead of silently starting a half-configured wiki.
  */
 function mwEnv( string $name, ?string $default = null, array $aliases = [] ): string {
 	foreach ( array_merge( [ $name ], $aliases ) as $candidate ) {
 		$value = getenv( $candidate );
 		if ( $value !== false && $value !== '' ) {
 			return $value;
+		}
+		$file = getenv( $candidate . '_FILE' );
+		if ( $file !== false && $file !== '' ) {
+			if ( !is_readable( $file ) ) {
+				throw new RuntimeException( "mediawiki-pg: {$candidate}_FILE points at $file, which cannot be read" );
+			}
+			$value = trim( (string)file_get_contents( $file ) );
+			if ( $value !== '' ) {
+				return $value;
+			}
 		}
 	}
 	if ( $default === null ) {
@@ -94,15 +108,17 @@ $wgCdnServersNoPurge = mwEnvList( 'MW_TRUSTED_PROXIES' );
 
 ## Database. Defaults target RDS for PostgreSQL, which is what this image adds
 ## the pgsql extensions for.
-$wgDBtype     = mwEnv( 'MW_DB_TYPE', 'postgres' );
-$wgDBserver   = mwEnv( 'MW_DB_SERVER', null, [ 'MW_DB_HOST' ] );
-$wgDBname     = mwEnv( 'MW_DB_NAME' );
-$wgDBuser     = mwEnv( 'MW_DB_USER' );
-$wgDBpassword = mwEnv( 'MW_DB_PASSWORD' );
-$wgDBport     = mwEnv( 'MW_DB_PORT', $wgDBtype === 'postgres' ? '5432' : '3306' );
-$wgDBssl      = mwEnvBool( 'MW_DB_SSL', true );
+$wgDBtype     = mwEnv( 'MW_DB_TYPE', 'postgres', [ 'MEDIAWIKI_DB_TYPE' ] );
+$wgDBserver   = mwEnv( 'MW_DB_SERVER', null, [ 'MW_DB_HOST', 'MEDIAWIKI_DB_HOST' ] );
+$wgDBname     = mwEnv( 'MW_DB_NAME', null, [ 'MEDIAWIKI_DB_NAME' ] );
+$wgDBuser     = mwEnv( 'MW_DB_USER', null, [ 'MEDIAWIKI_DB_USER' ] );
+$wgDBpassword = mwEnv( 'MW_DB_PASSWORD', null, [ 'MEDIAWIKI_DB_PASSWORD' ] );
+$wgDBport     = mwEnv( 'MW_DB_PORT', $wgDBtype === 'postgres' ? '5432' : '3306', [ 'MEDIAWIKI_DB_PORT' ] );
+## Off, as in MediaWiki itself, so a plain database container works out of the
+## box. Set MW_DB_SSL=true for RDS, Cloud SQL and anything else that expects TLS.
+$wgDBssl      = mwEnvBool( 'MW_DB_SSL', false );
 if ( $wgDBtype === 'postgres' ) {
-	$wgDBmwschema = mwEnv( 'MW_DB_SCHEMA', 'mediawiki' );
+	$wgDBmwschema = mwEnv( 'MW_DB_SCHEMA', 'mediawiki', [ 'MEDIAWIKI_DB_SCHEMA' ] );
 }
 
 ## Cache and sessions.
@@ -147,10 +163,12 @@ $wgLocaltimezone = mwEnv( 'MW_TIMEZONE', 'UTC' );
 
 $wgDiff3 = mwEnv( 'MW_DIFF3', '/usr/bin/diff3' );
 
-## Anonymous access
+## Anonymous access. These keep MediaWiki's own defaults: the image is a base
+## image and does not decide a wiki's policy. Lock it down per wiki, either with
+## these variables or in MW_SETTINGS_DIR.
 $wgGroupPermissions['*']['read'] = mwEnvBool( 'MW_ANON_READ', true );
-$wgGroupPermissions['*']['edit'] = mwEnvBool( 'MW_ANON_EDIT', false );
-$wgGroupPermissions['*']['createaccount'] = mwEnvBool( 'MW_ANON_CREATE_ACCOUNT', false );
+$wgGroupPermissions['*']['edit'] = mwEnvBool( 'MW_ANON_EDIT', true );
+$wgGroupPermissions['*']['createaccount'] = mwEnvBool( 'MW_ANON_CREATE_ACCOUNT', true );
 
 ## Email. SES SMTP is the usual endpoint on AWS; MW_SMTP_HOST carries the
 ## scheme, e.g. tls://email-smtp.eu-west-1.amazonaws.com.

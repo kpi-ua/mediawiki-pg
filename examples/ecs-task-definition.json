@@ -19,6 +19,7 @@
         { "name": "MW_DB_SERVER", "value": "postgres-db.eu-west-1.rds.amazonaws.com" },
         { "name": "MW_DB_NAME", "value": "wikidb" },
         { "name": "MW_DB_USER", "value": "wikiadmin" },
+        { "name": "MW_DB_SSL", "value": "true" },
         { "name": "MW_LANGUAGE_CODE", "value": "en" },
         { "name": "MW_TIMEZONE", "value": "UTC" },
         { "name": "MW_TRUSTED_PROXIES", "value": "10.0.0.0/16" },

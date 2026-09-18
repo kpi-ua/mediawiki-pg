@@ -11,17 +11,17 @@ This repository provides a Docker image for running [MediaWiki](https://www.medi
 Pull the image from Docker Hub:
 
 ```bash
-docker pull kpiua/mediawiki:1.44.2-pg
+docker pull kpiua/mediawiki-pg:1.44.2-pg
 ```
 
-Or use it in your own Docker setup by referencing `kpiua/mediawiki:1.44.2-pg` as the base image.
+Or use it in your own Docker setup by referencing `kpiua/mediawiki-pg:1.44.2-pg` as the base image.
 
 ## Building the Image
 
 To build the image locally:
 
 ```bash
-docker build -t kpiua/mediawiki:1.44.2-pg .
+docker build -t kpiua/mediawiki-pg:1.44.2-pg .
 ```
 
 ## Running the Image
@@ -37,7 +37,7 @@ docker run -d \
   -e MEDIAWIKI_DB_NAME=mediawiki \
   -e MEDIAWIKI_DB_USER=mediawiki \
   -e MEDIAWIKI_DB_PASSWORD=your-password \
-  kpiua/mediawiki:1.44.2-pg
+  kpiua/mediawiki-pg:1.44.2-pg
 ```
 
 Access MediaWiki at http://localhost:8080
@@ -78,6 +78,12 @@ definition, with passwords coming from Secrets Manager.
 Values without a default are mandatory; a missing one fails at startup with a
 named error instead of starting a half-configured wiki.
 
+Every variable also accepts a `<NAME>_FILE` form pointing at a file that holds
+the value, for Docker and Kubernetes secrets: `MW_DB_PASSWORD_FILE=/run/secrets/db`.
+The variable itself wins when both are set, and a `_FILE` that cannot be read is
+an error rather than an empty value. The upstream `MEDIAWIKI_DB_*` names are
+accepted as aliases for the database settings.
+
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `MW_SERVER` (`MW_URL`) | — | Public URL including the scheme; must be `https://...` behind a load balancer that terminates TLS |
@@ -85,12 +91,12 @@ named error instead of starting a half-configured wiki.
 | `MW_ARTICLE_PATH` | `$MW_SCRIPT_PATH/index.php/$1` | Article path |
 | `MW_SITENAME` | `MediaWiki` | Wiki name |
 | `MW_META_NAMESPACE` | `` | Project namespace |
-| `MW_DB_SERVER` (`MW_DB_HOST`) | — | Database endpoint |
-| `MW_DB_NAME` / `MW_DB_USER` / `MW_DB_PASSWORD` | — | Database credentials |
+| `MW_DB_SERVER` (`MW_DB_HOST`, `MEDIAWIKI_DB_HOST`) | — | Database endpoint |
+| `MW_DB_NAME` / `MW_DB_USER` / `MW_DB_PASSWORD` (`MEDIAWIKI_DB_*`) | — | Database credentials |
 | `MW_DB_TYPE` | `postgres` | `postgres` or `mysql` |
 | `MW_DB_PORT` | `5432` / `3306` | Depends on `MW_DB_TYPE` |
 | `MW_DB_SCHEMA` | `mediawiki` | PostgreSQL schema |
-| `MW_DB_SSL` | `true` | TLS to the database, as RDS expects |
+| `MW_DB_SSL` | `false` | Set it to `true` for RDS, Cloud SQL and anything else expecting TLS |
 | `MW_SECRET_KEY` | — | Must be identical across containers and stable across deployments; changing it invalidates every session |
 | `MW_UPGRADE_KEY` | `` | Web updater key |
 | `MW_AUTH_TOKEN_VERSION` | `1` | Bumping it logs everyone out |
@@ -103,7 +109,7 @@ named error instead of starting a half-configured wiki.
 | `MW_SKINS` | `Vector` | Comma-separated skins to load |
 | `MW_EXTENSIONS` | unset | Comma-separated extensions to load |
 | `MW_LOGO` / `MW_LOGO_ICON` / `MW_FAVICON` | unset | Branding URLs |
-| `MW_ANON_READ` / `MW_ANON_EDIT` / `MW_ANON_CREATE_ACCOUNT` | `true` / `false` / `false` | Anonymous permissions |
+| `MW_ANON_READ` / `MW_ANON_EDIT` / `MW_ANON_CREATE_ACCOUNT` | `true` | Anonymous permissions, at MediaWiki's own defaults |
 | `MW_ENABLE_UPLOADS` | `false` | Needs shared storage for `images/`; container-local uploads are lost when a container is replaced |
 | `MW_ENABLE_EMAIL` / `MW_ENABLE_USER_EMAIL` | set when `MW_SMTP_HOST` is | Email features |
 | `MW_SMTP_HOST` | unset | Includes the scheme, e.g. `tls://email-smtp.eu-west-1.amazonaws.com` |
@@ -116,6 +122,19 @@ named error instead of starting a half-configured wiki.
 | `MW_LOG_TO_STDERR` | `true` | Database errors to stderr, for CloudWatch Logs |
 | `MW_SETTINGS_DIR` | `/etc/mediawiki/settings.d` | Directory of extra `*.php` configuration |
 | `MW_CONFIG_FILE` | chosen by the entrypoint | Set it explicitly to override that choice |
+
+### Defaults
+
+Where a setting is about running in a container, the defaults differ from a
+stock MediaWiki install, and the README table says so: the object cache and
+sessions go to the database rather than `CACHE_NONE`, the localisation cache
+directory is container-local, and database errors go to stderr for the log
+driver to pick up.
+
+Everything that is a wiki's own policy keeps MediaWiki's defaults — anonymous
+read, edit and account creation stay on, uploads stay off — because this is a
+base image and not a place to decide policy. Set the variables, or drop a file
+into `MW_SETTINGS_DIR`, to change that per wiki.
 
 ### Wiki-specific configuration
 

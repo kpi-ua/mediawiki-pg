@@ -14,7 +14,7 @@ set -eu
 BUNDLED_CONFIG=/etc/mediawiki/LocalSettings.php
 DOCROOT_CONFIG=/var/www/html/LocalSettings.php
 
-db_server="${MW_DB_SERVER:-${MW_DB_HOST:-}}"
+db_server="${MW_DB_SERVER:-${MW_DB_HOST:-${MEDIAWIKI_DB_HOST:-${MW_DB_SERVER_FILE:-${MW_DB_HOST_FILE:-}}}}}"
 
 if [ -z "${MW_CONFIG_FILE:-}" ]; then
 	if [ -f "$DOCROOT_CONFIG" ]; then
