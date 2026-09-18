@@ -1,7 +1,7 @@
 # MediaWiki Docker image with PostgreSQL support
 # Based on official MediaWiki image with added PostgreSQL PHP extensions
 
-FROM mediawiki:1.44.2
+FROM mediawiki:1.45.4
 
 # Install PostgreSQL PHP extensions. curl comes along for container health
 # checks against healthz.php and is a no-op when the base image already has it.
