@@ -1,0 +1,55 @@
+{
+  "family": "mediawiki",
+  "requiresCompatibilities": ["FARGATE"],
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "mediawiki",
+      "image": "kpiua/mediawiki-pg:1.44.2-pg",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 80, "protocol": "tcp" }
+      ],
+      "environment": [
+        { "name": "MW_SERVER", "value": "https://wiki.example.org" },
+        { "name": "MW_SITENAME", "value": "Example Wiki" },
+        { "name": "MW_DB_SERVER", "value": "postgres-db.eu-west-1.rds.amazonaws.com" },
+        { "name": "MW_DB_NAME", "value": "wikidb" },
+        { "name": "MW_DB_USER", "value": "wikiadmin" },
+        { "name": "MW_DB_SSL", "value": "true" },
+        { "name": "MW_LANGUAGE_CODE", "value": "en" },
+        { "name": "MW_TIMEZONE", "value": "UTC" },
+        { "name": "MW_TRUSTED_PROXIES", "value": "10.0.0.0/16" },
+        { "name": "MW_SMTP_HOST", "value": "tls://email-smtp.eu-west-1.amazonaws.com" },
+        { "name": "MW_PASSWORD_SENDER", "value": "no-reply@example.org" },
+        { "name": "MW_EXTENSIONS", "value": "CategoryTree,VisualEditor" }
+      ],
+      "secrets": [
+        { "name": "MW_DB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:eu-west-1:ACCOUNT_ID:secret:mediawiki-SUFFIX:dbPassword::" },
+        { "name": "MW_SECRET_KEY", "valueFrom": "arn:aws:secretsmanager:eu-west-1:ACCOUNT_ID:secret:mediawiki-SUFFIX:secretKey::" },
+        { "name": "MW_UPGRADE_KEY", "valueFrom": "arn:aws:secretsmanager:eu-west-1:ACCOUNT_ID:secret:mediawiki-SUFFIX:upgradeKey::" },
+        { "name": "MW_SMTP_USERNAME", "valueFrom": "arn:aws:secretsmanager:eu-west-1:ACCOUNT_ID:secret:mediawiki-SUFFIX:smtpUser::" },
+        { "name": "MW_SMTP_PASSWORD", "valueFrom": "arn:aws:secretsmanager:eu-west-1:ACCOUNT_ID:secret:mediawiki-SUFFIX:smtpPassword::" }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost/healthz.php || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/mediawiki",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "mediawiki",
+          "awslogs-create-group": "true"
+        }
+      }
+    }
+  ]
+}
