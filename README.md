@@ -11,17 +11,17 @@ This repository provides a Docker image for running [MediaWiki](https://www.medi
 Pull the image from Docker Hub:
 
 ```bash
-docker pull kpiua/mediawiki-pg:1.45.6-pg
+docker pull kpiua/mediawiki-pg:1.46.2-pg
 ```
 
-Or use it in your own Docker setup by referencing `kpiua/mediawiki-pg:1.45.6-pg` as the base image.
+Or use it in your own Docker setup by referencing `kpiua/mediawiki-pg:1.46.2-pg` as the base image.
 
 ## Building the Image
 
 To build the image locally:
 
 ```bash
-docker build -t kpiua/mediawiki-pg:1.45.6-pg .
+docker build -t kpiua/mediawiki-pg:1.46.2-pg .
 ```
 
 ## Running the Image
@@ -37,7 +37,7 @@ docker run -d \
   -e MEDIAWIKI_DB_NAME=mediawiki \
   -e MEDIAWIKI_DB_USER=mediawiki \
   -e MEDIAWIKI_DB_PASSWORD=your-password \
-  kpiua/mediawiki-pg:1.45.6-pg
+  kpiua/mediawiki-pg:1.46.2-pg
 ```
 
 Access MediaWiki at http://localhost:8080
@@ -67,7 +67,7 @@ docker run -d -p 8080:80 \
   -e MW_DB_USER=wikiadmin \
   -e MW_DB_PASSWORD=... \
   -e MW_SECRET_KEY=... \
-  kpiua/mediawiki-pg:1.45.6-pg
+  kpiua/mediawiki-pg:1.46.2-pg
 ```
 
 `examples/ecs-task-definition.json` is the same thing as a Fargate task
@@ -143,7 +143,7 @@ Anything the variables do not cover goes into `*.php` files under
 `LocalSettings.php` and able to override every value it sets:
 
 ```dockerfile
-FROM kpiua/mediawiki-pg:1.45.6-pg
+FROM kpiua/mediawiki-pg:1.46.2-pg
 COPY 10-permissions.php /etc/mediawiki/settings.d/
 ```
 
@@ -182,9 +182,9 @@ docker exec -e MW_CONFIG_FILE=/etc/mediawiki/LocalSettings.php mediawiki \
   php maintenance/run.php update --quick
 ```
 
-MediaWiki 1.45 requires PHP 8.2 or later — the official base image provides it —
+MediaWiki 1.46 requires PHP 8.3 or later — the official base image provides it —
 and PostgreSQL 10 or later. Nothing the bundled configuration sets was removed
-or renamed in 1.45.
+or renamed in 1.46 (only `$wgLogos['1.5x']` went away, and the bundled configuration never set it).
 
 ## Features
 
